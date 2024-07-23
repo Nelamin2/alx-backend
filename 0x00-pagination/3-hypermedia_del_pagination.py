@@ -8,6 +8,13 @@ import math
 from typing import List
 
 
+def index_range(page: int, page_size: int) -> Tuple[int, int]:
+    """Retrieves the index range from a given page and page size.
+    """
+
+    return ((page - 1) * page_size, ((page - 1) * page_size) + page_size)
+
+
 class Server:
     """Server class to paginate a database of popular baby names.
     """
