@@ -10,7 +10,7 @@ class LIFOCache(BaseCaching):
         """ Constructor """
         super().__init__()
         self.stack = []
-        
+
     def put(self, key, item):
         """ Add an item in the cache """
         if key and item:
