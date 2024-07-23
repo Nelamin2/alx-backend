@@ -11,7 +11,7 @@ class LFUCache(BaseCaching):
         super().__init__()
         self.queue = []
         self.count = {}
-    
+
     def put(self, key, item):
         """ Add an item in the cache """
         if key and item:
