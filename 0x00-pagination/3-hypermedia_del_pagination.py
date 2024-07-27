@@ -31,15 +31,14 @@ class Server:
                 reader = csv.reader(f)
                 dataset = [row for row in reader]
             self.__dataset = dataset[1:]
-
         return self.__dataset
 
     def indexed_dataset(self) -> Dict[int, List]:
-    """Dataset indexed by sorting position, starting at 0"""
-    if self.__indexed_dataset is None:
-        dataset = self.dataset()
-        self.__indexed_dataset = {i: dataset[i] for i in range(len(dataset))}
-    return self.__indexed_dataset
+        """Dataset indexed by sorting position, starting at 0"""
+        if self.__indexed_dataset is None:
+            dataset = self.dataset()
+            self.__indexed_dataset = {i: dataset[i] for i in range(len(dataset))}
+        return self.__indexed_dataset
 
     def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
         """Retrieves a page of data.

@@ -1,38 +1,72 @@
 #!/usr/bin/env python3
 """
-Main file
+Deletion-resilient hypermedia pagination
 """
 
-Server = __import__('3-hypermedia_del_pagination').Server
-
-server = Server()
-
-server.indexed_dataset()
-
-try:
-    server.get_hyper_index(300000, 100)
-except AssertionError:
-    print("AssertionError raised when out of range")        
+import csv
+import math
+from typing import List, Dict, Tuple
 
 
-index = 3
-page_size = 2
+def index_range(page: int, page_size: int) -> Tuple[int, int]:
+    """Retrieves the index range from a given page and page size."""
+    return (page - 1) * page_size, page * page_size
 
-print("Nb items: {}".format(len(server._Server__indexed_dataset)))
 
-# 1- request first index
-res = server.get_hyper_index(index, page_size)
-print(res)
+class Server:
+    """Server class to paginate a database of popular baby names."""
+    DATA_FILE = "Popular_Baby_Names.csv"
 
-# 2- request next index
-print(server.get_hyper_index(res.get('next_index'), page_size))
+    def __init__(self):
+        self.__dataset = None
+        self.__indexed_dataset = None  # Initialize the __indexed_dataset attribute
 
-# 3- remove the first index
-del server._Server__indexed_dataset[res.get('index')]
-print("Nb items: {}".format(len(server._Server__indexed_dataset)))
+    def dataset(self) -> List[List]:
+        """Cached dataset."""
+        if self.__dataset is None:
+            with open(self.DATA_FILE) as f:
+                reader = csv.reader(f)
+                dataset = [row for row in reader]
+            self.__dataset = dataset[1:]
+        return self.__dataset
 
-# 4- request again the initial index -> the first data retreives is not the same as the first request
-print(server.get_hyper_index(index, page_size))
+    def indexed_dataset(self) -> Dict[int, List]:
+        """Dataset indexed by sorting position, starting at 0."""
+        if self.__indexed_dataset is None:
+            dataset = self.dataset()
+            self.__indexed_dataset = {i: dataset[i] for i in range(len(dataset))}
+        return self.__indexed_dataset
 
-# 5- request again initial next index -> same data page as the request 2-
-print(server.get_hyper_index(res.get('next_index'), page_size))
+    def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
+        """Retrieves a page of data."""
+        assert isinstance(page, int) and isinstance(page_size, int)
+        assert page > 0 and page_size > 0
+        start, end = index_range(page, page_size)
+        data = self.dataset()
+        if start > len(data):
+            return []
+        return data[start:end]
+
+    def get_hyper_index(self, index: int = None, page_size: int = 10) -> Dict:
+        """Retrieves info about a page from a given index and with a specified size."""
+        data = self.indexed_dataset()  # Use self.indexed_dataset() to call the method
+        assert index is not None and index >= 0 and index <= max(data.keys())
+        page_data = []
+        data_count = 0
+        next_index = None
+        start = index if index else 0
+        for i, item in data.items():
+            if i >= start and data_count < page_size:
+                page_data.append(item)
+                data_count += 1
+                continue
+            if data_count == page_size:
+                next_index = i
+                break
+        page_info = {
+            'index': index,
+            'next_index': next_index,
+            'page_size': len(page_data),
+            'data': page_data,
+        }
+        return page_info
