@@ -1,11 +1,8 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
 
 from flask import Flask, render_template, request, g
 from flask_babel import Babel
 import pytz
-
-app = Flask(__name__)
-babel = Babel(app)
 
 
 class config:
@@ -14,10 +11,9 @@ class config:
     BABEL_DEFAULT_LOCALE = 'en'
     LANGUAGES = ['en', 'fr']
 
-
-app.config.from_object(config)
-
+app = Flask(__name__)
 babel = Babel(app)
+app.config.from_object(config)
 
 @app.route('/', methods=['GET'], strict_slashes=False)
 def index():
@@ -26,4 +22,7 @@ def index():
 
 
 if (__name__ == "__main__"):
+    app.run(debug=True)
+
+    
     app.run(debug=True)
